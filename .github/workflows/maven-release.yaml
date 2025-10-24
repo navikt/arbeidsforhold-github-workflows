@@ -27,17 +27,17 @@ jobs:
         with:
           server-id: 'github'
           distribution: 'temurin'
-          java-version: ${{ github.event.inputs.javaVersion }}
+          java-version: ${{ inputs.javaVersion }}
       - name: Konfigurer git
         run: |
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
           git config --global url."https://x-access-token:${{ github.token }}@github.com".insteadof "https://github.com"
       - name: Maven release prepare
-        run: mvn release:prepare -B -e ${{ github.event.inputs.releaseVersion && '-DreleaseVersion='}}${{ github.event.inputs.releaseVersion }} ${{ github.event.inputs.developmentVersion && '-DdevelopmentVersion='}}${{ github.event.inputs.developmentVersion }}
+        run: mvn release:prepare -B -e ${{ inputs.releaseVersion && '-DreleaseVersion='}}${{ inputs.releaseVersion }} ${{ inputs.developmentVersion && '-DdevelopmentVersion='}}${{ inputs.developmentVersion }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
       - name: Maven release perform
-        run: mvn release:perform -B -e ${{ github.event.inputs.releaseVersion && '-DreleaseVersion='}}${{ github.event.inputs.releaseVersion }} ${{ github.event.inputs.developmentVersion && '-DdevelopmentVersion='}}${{ github.event.inputs.developmentVersion }}
+        run: mvn release:perform -B -e ${{ inputs.releaseVersion && '-DreleaseVersion='}}${{ inputs.releaseVersion }} ${{ inputs.developmentVersion && '-DdevelopmentVersion='}}${{ inputs.developmentVersion }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
