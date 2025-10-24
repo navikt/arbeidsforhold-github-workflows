@@ -1,0 +1,43 @@
+name: Gjør maven release til GitHub Packages
+on:
+  workflow_call:
+    inputs:
+      releaseVersion:
+        type: string
+        description: "Versjon som blir laget. Kan være blank, da brukes snapshot-versjonsnummer"
+        required: false
+      developmentVersion:
+        type: string
+        description: "Ny snapshot versjon etter release. Kan være blank, da blir det x.y.z+1-SNAPSHOT"
+        required: false
+      javaVersion:
+        type: string
+        description: "Java versjon som skal brukes, sendes videre til actions/setup-java, se dokumentasjon der."
+        required: true
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        name: Hent java og maven
+        with:
+          server-id: 'github'
+          distribution: 'temurin'
+          java-version: ${{ github.event.inputs.javaVersion }}
+      - name: Konfigurer git
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+          git config --global url."https://x-access-token:${{ github.token }}@github.com".insteadof "https://github.com"
+      - name: Maven release prepare
+        run: mvn release:prepare -B -e ${{ github.event.inputs.releaseVersion && '-DreleaseVersion='}}${{ github.event.inputs.releaseVersion }} ${{ github.event.inputs.developmentVersion && '-DdevelopmentVersion='}}${{ github.event.inputs.developmentVersion }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Maven release perform
+        run: mvn release:perform -B -e ${{ github.event.inputs.releaseVersion && '-DreleaseVersion='}}${{ github.event.inputs.releaseVersion }} ${{ github.event.inputs.developmentVersion && '-DdevelopmentVersion='}}${{ github.event.inputs.developmentVersion }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
